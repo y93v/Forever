@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Day I Chose You | Raudah</title>
+    <meta name="description" content="A private memory for Raudah.">
+    <meta name="theme-color" content="#050203">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 1. CORE VARIABLES & RESET --- */
+        :root {
+            --bg-color: #050203; /* Deep black-red */
+            --text-color: #e6dada;
+            --accent-rose: #c78d9b;
+            --accent-gold: #d4af37;
+            --border: rgba(255, 255, 255, 0.08);
+            
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Inter', sans-serif;
+            --font-script: 'Pinyon Script', cursive;
+            --font-cinematic: 'Cinzel', serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        *:focus { outline: none; }
+        *:focus-visible { outline: 1px solid var(--accent-rose); outline-offset: 2px; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-sans);
+            height: 100dvh; /* Mobile Viewport Fix */
+            overflow: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            user-select: none;
+        }
+
+        .letter-text { user-select: text; }
+
+        /* --- 2. LAYOUT --- */
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Vignette */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, #000 120%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Particles */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* --- 3. STAGE SYSTEM --- */
+        .stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.98);
+            transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), 
+                        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                        visibility 0.8s;
+            z-index: 10;
+        }
+
+        .stage.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            z-index: 20;
+        }
+
+        .stage.exiting {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.98);
+            transition: all 0.6s ease-in;
+        }
+
+        /* Stage Content */
+        .stage-content {
+            flex: 1;
+            width: 100%;
+            max-width: 600px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+            padding: 20px 0 100px 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+        }
+        
+        .center-align { justify-content: center; align-items: center; text-align: center; }
+        .top-align { justify-content: flex-start; }
+        .stage-content::-webkit-scrollbar { display: none; }
+
+        /* --- 4. TYPOGRAPHY & UI --- */
+        h1, h2 {
+            font-family: var(--font-serif);
+            color: #fff;
+            text-align: center;
+            line-height: 1.2;
+            width: 100%;
+        }
+
+        .subtitle {
+            font-family: var(--font-cinematic);
+            color: var(--accent-rose);
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            text-align: center;
+            opacity: 0.9;
+            width: 100%;
+        }
+
+        .rose-text { color: var(--accent-rose); }
+        .italic { font-style: italic; }
+
+        .nav-container {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 50;
+            padding: 0 20px;
+            pointer-events: none;
+        }
+
+        .nav-container button { pointer-events: auto; }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 14px 28px;
+            font-family: var(--font-cinematic);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border-radius: 2px;
+            min-width: 110px;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+            background: rgba(199, 141, 155, 0.15);
+            border-color: rgba(199, 141, 155, 0.3);
+        }
+
+        .btn-primary {
+            border-color: rgba(199, 141, 155, 0.4);
+            background: rgba(199, 141, 155, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        /* --- 5. STAGE STYLES --- */
+
+        /* Hero */
+        .hero-title {
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            margin-bottom: 10px;
+        }
+
+        .hero-image-container {
+            position: relative;
+            margin: 25px 0 30px;
+            padding: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .hero-img {
+            display: block;
+            max-width: 100%;
+            width: 260px;
+            height: auto;
+            border-radius: 14px;
+            filter: brightness(0.95) contrast(1.05);
+        }
+
+        .caption {
+            font-family: var(--font-script);
+            font-size: 1.5rem;
+            color: var(--accent-rose);
+            margin-top: 15px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .typewriter {
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            min-height: 24px;
+            text-align: center;
+        }
+
+        /* Timeline */
+        .timeline-container {
+            position: relative;
+            padding-left: 20px;
+            margin-top: 30px;
+            padding-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, var(--accent-rose), transparent);
+        }
+
+        .memory {
+            position: relative;
+            margin-bottom: 45px;
+            padding-left: 25px;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.8s ease;
+        }
+
+        .memory.visible { opacity: 1; transform: translateY(0); }
+
+        .memory::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 6px;
+            width: 9px;
+            height: 9px;
+            background: var(--bg-color);
+            border: 1px solid var(--accent-rose);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-rose);
+            margin-left: -16px;
+        }
+
+        .memory h3 {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            color: #fff;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .memory p {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            font-weight: 300;
+            text-align: left;
+        }
+
+        /* Letter */
+        .letter-paper {
+            background: linear-gradient(145deg, rgba(20, 10, 10, 0.7), rgba(10, 5, 5, 0.9));
+            padding: 30px 25px;
+            border-radius: 6px;
+            border: 1px solid rgba(199, 141, 155, 0.15);
+            margin-top: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            width: 100%;
+        }
+
+        .letter-text {
+            font-family: var(--font-serif);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #dadada;
+            white-space: pre-wrap;
+            text-align: left;
+        }
+
+        .letter-signature {
+            text-align: right;
+            font-family: var(--font-script);
+            font-size: 2.2rem;
+            color: var(--accent-rose);
+            margin-top: 30px;
+        }
+
+        /* Final Stage */
+        .final-word {
+            font-family: var(--font-cinematic);
+            font-size: 3rem;
+            letter-spacing: 8px;
+            color: #fff;
+            margin-bottom: 10px;
+            animation: pulse 3s infinite ease-in-out;
+            position: relative;
+            z-index: 5;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .final-sub {
+            font-family: var(--font-script);
+            font-size: 2rem;
+            color: var(--accent-rose);
+            position: relative;
+            z-index: 5;
+            margin-bottom: 30px;
+        }
+
+        .signature-container {
+            position: relative;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .final-sig {
+            font-family: var(--font-script);
+            font-size: 3rem;
+            color: var(--accent-rose);
+            position: relative;
+            z-index: 2;
+        }
+
+        .glowing-heart {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(199, 141, 155, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 1;
+            animation: pulseHeart 4s infinite ease-in-out;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .hidden-message {
+            font-family: var(--font-cinematic);
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.8;
+            opacity: 0;
+            filter: blur(8px);
+            transform: translateY(15px);
+            transition: all 2.5s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            z-index: 5;
+        }
+
+        .hidden-message.reveal {
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0);
+        }
+
+        .floating-love-word {
+            position: absolute;
+            color: var(--accent-rose);
+            font-family: var(--font-script);
+            font-size: 1.4rem;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1;
+            animation: floatWord 6s ease-out forwards;
+            text-shadow: 0 0 10px rgba(199, 141, 155, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); text-shadow: 0 0 20px var(--accent-rose); }
+        }
+
+        @keyframes pulseHeart {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.5; }
+        }
+
+        @keyframes floatWord {
+            0% { opacity: 0; transform: translateY(40px) scale(0.8); }
+            20% { opacity: 0.5; }
+            100% { opacity: 0; transform: translateY(-150px) scale(1.1); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="vignette"></div>
+    <div id="particles"></div>
+
+    <div id="app">
+        
+        <!-- STAGE 1: HERO -->
+        <section class="stage active" id="stage-1">
+            <div class="stage-content center-align">
+                <div class="subtitle">A Story for Us</div>
+                <h1 class="hero-title">The Day I<br>Chose You</h1>
+                
+                <div class="hero-image-container">
+                    <img src="https://cdn.discordapp.com/attachments/1461780240316629194/1472289345804177501/Screenshot_20260214_205151_Gallery.jpg?ex=699207cd&is=6990b64d&hm=a354d607cdf4a7fd6a523c20ad6e79b5876405950f52bb02d562e899bd14987b&" alt="Flowers for Raudah" class="hero-img">
+                    <div class="caption">Flowers for my pretty girl.</div>
+                </div>
+
+                <div class="typewriter" id="typewriter"></div>
+            </div>
+
+            <div class="nav-container">
+                <button class="btn btn-primary" onclick="nextStage(2);">Enter Our World</button>
+            </div>
+        </section>
+
+        <!-- STAGE 2: TIMELINE -->
+        <section class="stage" id="stage-2">
+            <div class="stage-content top-align">
+                <div class="subtitle">The Journey</div>
+                <h2>Our Timeline</h2>
+                
+                <div class="timeline-container">
+                    <div class="memory">
+                        <h3>The Language of Us</h3>
+                        <p>You told me, "I don't know how to speak English well." I answered the only truth I knew: <br><span class="italic rose-text">"No... your English is actually wonderful."</span></p>
+                    </div>
+
+                    <div class="memory">
+                        <h3>Becoming Us</h3>
+                        <p>The day we chose names. You became my <span class="rose-text">Roro</span>, and I became your <span class="rose-text">moha</span>. A secret world for two.</p>
+                    </div>
+
+                    <div class="memory">
+                        <h3>The Endless Night</h3>
+                        <p>The call that lasted a full day. My body barely slept, yet it remains the most beautiful night of my life.</p>
+                    </div>
+
+                    <div class="memory">
+                        <h3>The Safe Space</h3>
+                        <p>Just hearing you breathe over the phone makes me feel safer than I have ever felt in this world.</p>
+                    </div>
+
+                    <div class="memory">
+                        <h3>The Promise</h3>
+                        <p>Realizing that distance is just a map, but you are the destination. Every plan I make starts with you.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-container">
+                <button class="btn" onclick="prevStage(1)">Back</button>
+                <button class="btn btn-primary" onclick="nextStage(3)">Read Letter</button>
+            </div>
+        </section>
+
+        <!-- STAGE 3: LETTER -->
+        <section class="stage" id="stage-3">
+            <div class="stage-content top-align">
+                <div class="subtitle">From My Heart</div>
+                <h2>Untukmu, Raudah</h2>
+
+                <div class="letter-paper">
+                    <div class="letter-text">Raudahku tersayang,
+
+Ada saat-saat dalam hidup di mana takdir tidak mengetuk pintu dengan keras, melainkan masuk dengan lembut, seperti cahaya hangat. Itulah dirimu bagiku.
+
+Sejak hari aku memilihmu, segalanya berubah. Itu bukan pilihan yang sulit, melainkan sebuah kepastian. Seolah hatiku mengenalimu bahkan sebelum mataku benar-benar melihatmu. Kamu telah menjadi kedamaianku, tempat bernaungku, dan bagian terindah dari hari-hariku.
+
+Roro, terkadang aku bertanya-tanya apa yang telah kulakukan hingga pantas mendapatkan jiwa semurni dirimu. Saat dunia terasa bising, aku memikirkanmu dan segalanya menjadi tenang. Tawamu, suaramu, kelembutanmu... segala sesuatu tentangmu mengingatkanku bahwa cinta yang tulus itu masih ada.
+
+Aku tahu jarak bisa terasa berat, tapi ketahuilah cintaku menyeberangi lautan tanpa lelah. Setiap detak jantungku menyebut namamu.
+
+Terima kasih telah menjadi dirimu. Terima kasih telah mencintaiku.</div>
+                    
+                    <div class="letter-signature">— moha</div>
+                </div>
+            </div>
+
+            <div class="nav-container">
+                <button class="btn" onclick="prevStage(2)">Back</button>
+                <button class="btn btn-primary" onclick="nextStage(4)">Final Word</button>
+            </div>
+        </section>
+
+        <!-- STAGE 4: FINAL -->
+        <section class="stage" id="stage-4">
+            <div class="stage-content center-align">
+                <div class="final-word">FOREVER</div>
+                <div class="final-sub">Yours, always.</div>
+                
+                <div class="signature-container">
+                    <div class="glowing-heart"></div>
+                    <div class="final-sig">— moha</div>
+                </div>
+
+                <div class="hidden-message" id="hidden-msg">
+                    You are not just my Valentine…<br>
+                    you are my always.
+                </div>
+            </div>
+
+            <div class="nav-container">
+                <button class="btn" onclick="prevStage(3)">Back</button>
+                <button class="btn btn-primary" onclick="nextStage(1)">Replay</button>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        /**
+         * STAGE MANAGER
+         */
+        let currentStageIdx = 1;
+        
+        function nextStage(idx) { changeStage(idx); }
+        function prevStage(idx) { changeStage(idx); }
+
+        function changeStage(idx) {
+            const currentEl = document.getElementById(`stage-${currentStageIdx}`);
+            const nextEl = document.getElementById(`stage-${idx}`);
+            
+            if (!nextEl) return;
+
+            currentEl.classList.add('exiting');
+            currentEl.classList.remove('active');
+
+            setTimeout(() => {
+                currentEl.classList.remove('exiting');
+                nextEl.classList.add('active');
+                
+                if (idx === 2) animateTimeline();
+                if (idx === 4) animateFinalStage();
+                
+            }, 400);
+
+            currentStageIdx = idx;
+        }
+
+        /**
+         * ANIMATIONS
+         */
+        const typeText = "Out of everyone... I chose you.";
+        const typeEl = document.getElementById('typewriter');
+        let typeIdx = 0;
+        let hasTyped = false;
+
+        function startTypewriter() {
+            if (hasTyped) return;
+            hasTyped = true;
+            function typeChar() {
+                if (typeIdx < typeText.length) {
+                    typeEl.innerHTML += typeText.charAt(typeIdx);
+                    typeIdx++;
+                    setTimeout(typeChar, 90);
+                }
+            }
+            setTimeout(typeChar, 800);
+        }
+        startTypewriter();
+
+        function animateTimeline() {
+            const memories = document.querySelectorAll('.memory');
+            memories.forEach((mem, index) => {
+                mem.classList.remove('visible'); 
+                setTimeout(() => {
+                    mem.classList.add('visible');
+                }, index * 250 + 400);
+            });
+        }
+
+        function animateFinalStage() {
+            const msg = document.getElementById('hidden-msg');
+            msg.classList.remove('reveal');
+            
+            setTimeout(() => { 
+                msg.classList.add('reveal'); 
+            }, 3000);
+            
+            triggerFloatingWords();
+        }
+
+        function triggerFloatingWords() {
+            const stage4 = document.getElementById('stage-4');
+            const content = stage4.querySelector('.stage-content');
+            
+            const old = document.querySelectorAll('.floating-love-word');
+            old.forEach(el => el.remove());
+
+            const words = ["Aku sayang kamu", "My Love", "Roro", "Always", "Us", "Peace"];
+            
+            for(let i=0; i<10; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.classList.add('floating-love-word');
+                    el.innerText = words[Math.floor(Math.random() * words.length)];
+                    
+                    const left = Math.random() * 80 + 10; 
+                    const top = Math.random() * 40 + 40; 
+                    const size = Math.random() * 0.5 + 1;
+
+                    el.style.left = left + '%';
+                    el.style.top = top + '%';
+                    el.style.fontSize = size + 'rem';
+                    
+                    content.appendChild(el);
+                    setTimeout(() => el.remove(), 6000);
+                }, i * 500);
+            }
+        }
+
+        function initParticles() {
+            const container = document.getElementById('particles');
+            const count = 15;
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                p.style.width = (Math.random() * 3 + 1) + 'px';
+                p.style.height = p.style.width;
+                p.style.left = (Math.random() * 100) + 'vw';
+                p.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                p.style.animationDelay = (Math.random() * 5) + 's';
+                container.appendChild(p);
+            }
+        }
+        initParticles();
+
+    </script>
+</body>
+</html>
+
+
+
